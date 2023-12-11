@@ -182,4 +182,5 @@ def cli():
                                     writesteps=args.writesteps,
                                     output_filename=args.output)
     
-    
+    if __name__=='__main__':
+        cli() 
