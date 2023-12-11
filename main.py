@@ -7,6 +7,7 @@ from maskfill import maskfill
 from astropy.io import fits 
 import matplotlib.pyplot as plt 
 from typing import Union,List,Callable
+import argparse 
 
 def grow_mask(mask, N):
     # Create a kernel of ones with size (2N+1, 2N+1)
@@ -24,7 +25,8 @@ def combine_with_rejection( imagelist:List[Union[str,np.ndarray]],
                             thresh: float = 99.5,
                             grow: int = 2,
                             combine: Callable = np.mean,
-                            writesteps: bool = False):
+                            writesteps: bool = False,
+                            output_filename: str = None):
     """Combine a series of images/spectra while rejecting cosmic rays.
     Cosmic rays identified in one frame are replaced with good pixels from the other frames. 
     
@@ -43,7 +45,8 @@ def combine_with_rejection( imagelist:List[Union[str,np.ndarray]],
         function with which the set of images should be ultimately combined, by default np.mean
     writesteps : bool, optional
         if True, write tmp fits files with the intermediate steps, by default False
-
+    output_filename : str, optional 
+        if provided, final combined file saved to this fits name.
     Returns
     -------
     np.ndarray
@@ -87,6 +90,11 @@ def combine_with_rejection( imagelist:List[Union[str,np.ndarray]],
         hdul=fits.HDUList(hdus)
         hdul.writeto('_masks.fits',overwrite=True)
     combined = combine(images,axis=0)
+    if output_filename is not None:
+        if not output_filename.endswith('.fits'):
+            output_filename+='.fits'
+        hdu = fits.PrimaryHDU(combined)
+        hdu.writeto(output_filename,overwrite=True)
     return combined
 
 def mask_and_fill(image:Union[np.ndarray,str],
@@ -148,3 +156,30 @@ def mask_and_fill(image:Union[np.ndarray,str],
         hdul = fits.HDUList([hdu,hdu1,hdu2,hdu3])
         hdul.writeto(out_filename,overwrite=True)
     return filled, mask 
+
+
+def cli(): 
+    parser = argparse.ArgumentParser()
+    # Define command line arguments
+    parser.add_argument("input", help="input image", type=list)
+    parser.add_argument('output',help='where to store output',type=str)
+    parser.add_argument("-e", "--extension",help="fits extension of data (default 0)",type=int,default=0)
+    parser.add_argument("-d", "--detector_gain",help="detector gain (default 1.0)",type=float,default=1)
+    parser.add_argument('-t','--thresh',help="percentile threshold for CR detection (default 99.5)",type=float,default=99.5)
+    parser.add_argument('-g','--grow',help='grow mask (default 1) before infilling',type=int,default=1)
+    parser.add_argument('-o','--operator',help='how to combine final image (mean or median)',type=str,default='mean')
+    parser.add_argument('-w','--writesteps',help='write intermediate steps to fits files.',type=bool,default=False)
+    args = parser.parse_args()
+    if args.operator == 'mean':
+        operator = np.mean 
+    elif args.operator == 'median':
+        operator = np.median 
+    combined = combine_with_rejection(args.input,
+                                    gain=args.detector_gain,
+                                    thresh=args.thresh,
+                                    grow=args.grow,
+                                    operator=operator,
+                                    writesteps=args.writesteps,
+                                    output_filename=args.output)
+    
+    
