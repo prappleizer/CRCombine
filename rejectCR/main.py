@@ -20,7 +20,7 @@ def grow_mask(mask, N):
 
     return expanded_mask
 
-def combine_with_rejection( imagelist:List[Union[str,np.ndarray]],
+def crcombine( imagelist:List[Union[str,np.ndarray]],
                             gain: float = 1.0,
                             thresh: float = 99.5,
                             grow: int = 2,
@@ -161,8 +161,8 @@ def mask_and_fill(image:Union[np.ndarray,str],
 def cli(): 
     parser = argparse.ArgumentParser()
     # Define command line arguments
-    parser.add_argument("input", help="input image", type=list)
-    parser.add_argument('output',help='where to store output',type=str)
+    parser.add_argument("--input",  nargs='+',help="set of input images", type=str)
+    parser.add_argument('--output',help='where to store output',type=str)
     parser.add_argument("-e", "--extension",help="fits extension of data (default 0)",type=int,default=0)
     parser.add_argument("-d", "--detector_gain",help="detector gain (default 1.0)",type=float,default=1)
     parser.add_argument('-t','--thresh',help="percentile threshold for CR detection (default 99.5)",type=float,default=99.5)
@@ -174,7 +174,7 @@ def cli():
         operator = np.mean 
     elif args.operator == 'median':
         operator = np.median 
-    combined = combine_with_rejection(args.input,
+    combined = crcombine(args.input,
                                     gain=args.detector_gain,
                                     thresh=args.thresh,
                                     grow=args.grow,
@@ -182,5 +182,6 @@ def cli():
                                     writesteps=args.writesteps,
                                     output_filename=args.output)
     
-    if __name__=='__main__':
-        cli() 
+__version__ = "0.1.0-beta"
+if __name__=='__main__':
+    cli() 
