@@ -72,8 +72,11 @@ def crcombine( imagelist:List[Union[str,np.ndarray]],
         difference_images[np.isnan(difference_images)] = 0    
     if writesteps:
         hdus = [] 
-        for i in difference_images: 
-            hdus.append(fits.ImageHDU(i))
+        for n,i in enumerate(difference_images): 
+            if n ==0:
+                hdus.append(fits.PrimaryHDU(i))
+            else:
+                hdus.append(fits.ImageHDU(i))
         hdul=fits.HDUList(hdus)
         hdul.writeto('_difference_images.fits',overwrite=True)
 
@@ -85,8 +88,11 @@ def crcombine( imagelist:List[Union[str,np.ndarray]],
         masks.append(mask)
     if writesteps: 
         hdus = [] 
-        for i in masks:
-            hdus.append(fits.ImageHDU(i))
+        for n,i in enumerate(masks): 
+            if n ==0:
+                hdus.append(fits.PrimaryHDU(i.astype(int)))
+            else:
+                hdus.append(fits.ImageHDU(i.astype(int)))
         hdul=fits.HDUList(hdus)
         hdul.writeto('_masks.fits',overwrite=True)
     combined = combine(images,axis=0)
@@ -96,6 +102,12 @@ def crcombine( imagelist:List[Union[str,np.ndarray]],
         hdu = fits.PrimaryHDU(combined)
         hdu.writeto(output_filename,overwrite=True)
     return combined
+
+class FilledImage():
+    def __init__(self,smoothed,filled,mask):
+        self.smoothed = smoothed 
+        self.filled = filled 
+        self.mask = self.mask 
 
 def mask_and_fill(image:Union[np.ndarray,str],
                 ext: int = 0,
@@ -155,7 +167,7 @@ def mask_and_fill(image:Union[np.ndarray,str],
         hdu3 = fits.ImageHDU(mask)
         hdul = fits.HDUList([hdu,hdu1,hdu2,hdu3])
         hdul.writeto(out_filename,overwrite=True)
-    return filled, mask 
+    return FilledImage(smoothed=filled[0],filled=filled[1],mask=mask)
 
 
 def cli(): 
