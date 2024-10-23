@@ -64,7 +64,10 @@ def crcombine(
             images.append(fits.getdata(i))
         if copy_header:
             header = fits.getheader(imagelist[0])
-
+            if output_filename is None:
+                raise AssertionError(
+                    "Copying Header only works when writing a new file to disk via output_filename."
+                )
     else:
         for i in imagelist:
             images.append(i)
