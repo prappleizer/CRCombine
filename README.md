@@ -1,2 +1,4 @@
-# rejectCR
-A simple tool for CR rejection using information from multiple images.
+# crcombine
+
+A simple tool for cleaning astronomical images with CR rejection using information from multiple images.
+

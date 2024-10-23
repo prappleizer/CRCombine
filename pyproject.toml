@@ -3,8 +3,8 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rejectCR"
-version = "1.1.0"
+name = "crcombine"
+version = "0.1.1"
 description = "A Python package for image combination with CR rejection"
 authors = [
     { name = "Imad Pasha", email = "imad.pasha@yale.edu"},
@@ -31,4 +31,4 @@ dependencies = [
 [project.optional-dependencies]
 testing = ["pytest"]
 [project.scripts]
-crcombine = "rejectCR.main:cli"
+crcombine = "crcombine.main:cli"
